@@ -8,7 +8,7 @@
 #include <map>
 using namespace std;
 int min_sup = 2;
-int number_of_element = 7;
+int number_of_element = 6;
 fstream _file;
 bool debug = true;
 bool check_data = false;
@@ -20,11 +20,17 @@ void checkOrigin(vector<vector<int>> origin){
         cout << endl;
     }
 }
-void deleteOriginData(vector<vector<int>> &origin,set<int>elems){
+void  deleteOriginData(vector<vector<int>> &origin,set<int>elems){
+
     for(int i = 0;i < origin.size();){
         for(int j = 0;j < origin[i].size();){
             int elem = origin[i][j];
             if(elem != -1 && elems.find(elem) == elems.end()){ // delete elements not in elems
+                if(elem > number_of_element){
+                    if(origin[i][j + 1] != -1){ // 向后传递值!!!
+                        origin[i][j + 1] += number_of_element;
+                    }
+                }
                 origin[i].erase(origin[i].begin() + j);
                 // 判断前后都是-1，或者j=0后为-1
                 if(j == 0){ //2 -1 ......
@@ -47,6 +53,7 @@ void deleteOriginData(vector<vector<int>> &origin,set<int>elems){
         }else{
             i++;
         }
+
     }
     if(check_data){
         cout<<"element in set elems"<<endl;
@@ -82,6 +89,7 @@ void output_answer(vector<int> prefix,set<int> elems){
     }
 }
 vector<vector<int>> rebuildOriginData(vector<vector<int>> origin,vector<int> prefix,bool flag){
+
     vector<vector<int>> result;
     int elem = prefix[prefix.size()-2],elem_pre = -1;
     if(flag){
@@ -136,7 +144,7 @@ vector<vector<int>> rebuildOriginData(vector<vector<int>> origin,vector<int> pre
             result.push_back(tmp);
         }
     }
-//    if(!flag && prefix.size() == 2 && prefix[prefix.size() - 2] == 4){//&& prefix[prefix.size() - 2] == 5){
+//    if(false && prefix.size() == 2  && prefix[prefix.size() - 2] ==0){//  && prefix[prefix.size() - 2] == 5){
 //        cout<<"prefix "<<endl;
 //        for(auto pre:prefix){
 //            cout<<pre<<" ";
@@ -156,9 +164,6 @@ vector<vector<int>> rebuildOriginData(vector<vector<int>> origin,vector<int> pre
 //            }
 //            cout<<endl;
 //        }
-//        cout<< "size : " << result.size() << endl;
-//    }
-//    if(prefix.size() == 3){
 //        cout<< "size : " << result.size() << endl;
 //    }
     return result;
@@ -184,10 +189,14 @@ void startPrefixSpan(vector<vector<int>> origin,vector<int> prefix){
                         int tmp_i = origin_i_j - 1;
                         while(tmp_i>= 0 && origin[origin_i][tmp_i] != -1){
                            // cout<< origin[origin_i][tmp_i] << " ---- "<< last_element<<endl;
-                            if(origin[origin_i][tmp_i] == last_element){
-//                                cout<< elem + number_of_element<< " ------ "<<endl;
-                                elements.insert(elem + number_of_element);
-                                elements_count[elem + number_of_element] = 1;
+                            if(origin[origin_i][tmp_i] == last_element || origin[origin_i][tmp_i] > number_of_element){ // 判断条件改一下 !!
+//                                cout<< elem + number_of_element<< " ------ row :"<<origin_i<<endl;
+                                if(elements.find(elem + number_of_element) == elements.end()){ // not fond
+                                    elements.insert(elem + number_of_element);
+                                    elements_count[elem + number_of_element] = 1;
+                                }else{
+                                    elements_count[elem + number_of_element] += 1;
+                                }
                                 vis[elem + number_of_element]= 1;
 //                                break;
                             }
@@ -206,6 +215,7 @@ void startPrefixSpan(vector<vector<int>> origin,vector<int> prefix){
         }
 //        delete []vis;
     }
+
     map<int,int>::iterator mp_iterator = elements_count.begin();
     for(;mp_iterator != elements_count.end(); mp_iterator++){
         if(mp_iterator->second < min_sup){      //delete the element which count < min_sup
@@ -218,7 +228,6 @@ void startPrefixSpan(vector<vector<int>> origin,vector<int> prefix){
     if (size == 0){
         return;
     }
-
     deleteOriginData(origin,elements);
     output_answer(prefix,elements);
     bool flag = false;
@@ -235,6 +244,10 @@ void startPrefixSpan(vector<vector<int>> origin,vector<int> prefix){
         startPrefixSpan(origin_tmp,prefix);
         prefix.pop_back();
         prefix.pop_back();
+        if(elem > number_of_element){
+            prefix.push_back(-1); // 回溯记得要加上去啊 ！！！
+        }
+
     }
 }
 int main(int argc,char **argv) { //
